@@ -24,3 +24,5 @@ runs/
 Thumbs.db
 .vscode/
 .idea/
+
+.venv-perch/

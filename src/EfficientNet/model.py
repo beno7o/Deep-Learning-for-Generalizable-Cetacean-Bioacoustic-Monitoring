@@ -32,8 +32,9 @@ def get_model(model_name: str, num_classes: int, freeze_backbone: bool = False):
     raise ValueError(f"Unknown model_name: {model_name}")
 
 
-def get_weighted_criterion(labels, num_classes: int, device=None):
+def get_weighted_criterion(labels, num_classes: int, device=None, label_smoothing: float = 0.0):
     """CrossEntropyLoss with 'balanced' class weights from the training labels."""
     w = compute_class_weight(class_weight="balanced", classes=np.arange(num_classes), y=np.asarray(labels))
     w = torch.tensor(w, dtype=torch.float)
-    return nn.CrossEntropyLoss(weight=w.to(device) if device is not None else w)
+    return nn.CrossEntropyLoss(weight=w.to(device) if device is not None else w,
+                               label_smoothing=label_smoothing)

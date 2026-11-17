@@ -1,0 +1,8 @@
+model,split,accuracy,f1_macro,f1_std
+"EfficientNet 2025 (old split, leaky)",main,0.947,0.91,
+EfficientNet_01 (2025 recipe),main,0.9707,0.9441,
+Perch 2.0 + logistic regression,main,0.941371158392435,0.924024471623499,
+"EfficientNet_02b (2025 recipe), 3 seeds",grouped,0.6255000000000001,0.44720000000000004,0.03907416025969082
+"EfficientNet_05 (best tuned), 3 seeds",grouped,0.6577333333333334,0.4840333333333333,0.016781040889448207
+Perch 2.0 + logistic regression (first window),grouped,0.7219251336898396,0.5425602776759558,
+Perch 2.0 + logistic regression (mean windows),grouped,0.7243558580456976,0.5678588541025102,

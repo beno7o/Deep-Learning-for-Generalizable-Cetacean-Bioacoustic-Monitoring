@@ -42,8 +42,28 @@ Short entries, newest at the bottom. This file feeds the supervisor updates; `RE
 - Grouped val/test are small per species (often one recording) → noisy per-species numbers.
 - Speed: ~36 s/epoch on RTX 5050 vs ~17 min/epoch in 2025 (GTX 1050).
 
+## 2026-11-17: Improving EfficientNet on unseen recordings (ideas from DL Labs 3 + 5)
+- Protocol: one change at a time, seeds 42/43/44, choose on mean val macro-F1, report test only (no tuning on test).
+- 02b (2025 recipe, 3 seeds): val F1 0.251, test F1 0.447 ± 0.04, acc 0.626.
+- 03 (lr 1e-4, wd 1e-2): val F1 0.296, test F1 0.423 (within noise).
+- 04 (03 + random low-pass, SpecAugment, noise, random offset): val F1 0.162, test F1 0.259 → looked terrible.
+- **Self-evaluation:** best epoch was ~1 in every run. On unseen recordings val loss rises from epoch 1 (over-confident mistakes) while val accuracy keeps rising (04: 24 → 37 % in 5 epochs), so early stopping on loss kept an under-trained model.
+- **Fix:** select checkpoint / early stop / LR schedule on val macro-F1 (REPSOL convention).
+  - 05 (03 + F1 selection): **val F1 0.364, test F1 0.484 ± 0.02, acc 0.658 ± 0.01**, best epoch ~10 → best EfficientNet.
+  - 06 (04 + F1 selection): val F1 0.344, test F1 0.451. Augmentation doesn't help.
+- Stopped tuning (small val set → winner's curse).
+
+## 2026-11-17: Perch 2.0
+- No WSL2 needed: perch-hoplite 1.0.2 + TensorFlow 2.21 (CPU) run on native Windows in a separate venv `.venv-perch`. Official Perch v2 CPU model (Kaggle) via preset `perch_v2_cpu`. (Hoplite also has an ONNX version that could use the GPU, but its weights are an unofficial community conversion.)
+- Embedded 14,098 clips (21,000 five-second windows) in 54 min, CPU, in parallel with GPU training.
+- Linear probe (logistic regression, C chosen on val): main acc 0.941 / F1 0.924; **grouped acc 0.722 / F1 0.543 (first window), 0.724 / 0.568 (mean of windows)** → beats best EfficientNet (0.658 / 0.484) on unseen recordings; EfficientNet slightly better on seen recordings (0.971 / 0.944).
+- Few-shot on grouped: k=32 per species → F1 0.51, already > EfficientNet trained on everything.
+- Per species mixed: Perch better on 18/34; the two fail on different species.
+- UMAP: several species form clean islands; layout also follows sample rate. HDBSCAN clusters agree with recordings about as much as with species.
+
 ## Next
-- WSL2 → Perch 2.0 embeddings on both splits → simple classifier → compare with EfficientNet_01/02.
+- Ideas: fine-tune Perch / MLP / ensemble with EfficientNet; recording-balanced sampling; DCLDE cross-dataset test; other Hoplite models (BirdNET, SurfPerch, AVES).
+- Send the update to Mohammed (overdue).
 
 ## Environment
 
@@ -55,5 +75,6 @@ Short entries, newest at the bottom. This file feeds the supervisor updates; `RE
 | Python | 3.12.10, venv in `.venv/` |
 | PyTorch | 2.11.0+cu128 (torchvision, torchaudio) |
 | Other | numpy 2.5, pandas 3.1, scikit-learn 1.9, librosa 1.0, soundfile, matplotlib 3.11, seaborn 0.13 |
-| WSL2 | not installed yet (needed for Perch 2.0) |
+| Perch env | `.venv-perch`: perch-hoplite 1.0.2, TensorFlow 2.21 (CPU), umap-learn 0.6 |
+| WSL2 | not installed (not needed so far) |
 | Data | external USB drive `D:\UNI&WORK\Watkins` (ADATA HV620S, 1 TB) |

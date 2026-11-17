@@ -3,22 +3,23 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import torch
 from sklearn.metrics import (accuracy_score, classification_report, confusion_matrix,
                              precision_recall_fscore_support)
 
 from src import config
 
 
-@torch.no_grad()
 def predict(model, loader, device):
+    import torch  # imported here so the Perch environment (no torch) can use this module
+
     model.eval()
     probs, ys = [], []
-    for x, y in loader:
-        with torch.autocast(device_type="cuda", enabled=str(device).startswith("cuda")):
-            out = model(x.to(device))
-        probs.append(torch.softmax(out.float(), 1).cpu())
-        ys.append(y)
+    with torch.no_grad():
+        for x, y in loader:
+            with torch.autocast(device_type="cuda", enabled=str(device).startswith("cuda")):
+                out = model(x.to(device))
+            probs.append(torch.softmax(out.float(), 1).cpu())
+            ys.append(y)
     probs = torch.cat(probs).numpy()
     return np.concatenate(ys), probs.argmax(1), probs
 
