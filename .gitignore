@@ -1,0 +1,26 @@
+﻿# Data: audio, annotations, embeddings stay out of git
+data/*
+!data/README.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Large model / experiment outputs
+*.wav
+*.flac
+*.npy
+*.npz
+*.h5
+*.ckpt
+*.sqlite
+runs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
