@@ -21,6 +21,8 @@ When test recordings have been partly heard during training, the fine-tuned Effi
 clearly better**: +6 points accuracy, +0.06–0.08 macro-F1 over the best tuned EfficientNet. With only
 **32 clips per species**, Perch (macro-F1 0.51) already beats EfficientNet trained on all ~9,500 clips.
 
+![Test accuracy and macro-F1 of all models on both splits](outputs/evaluation/final_comparison.png)
+
 ## Status
 
 | Step | State |
@@ -139,6 +141,12 @@ multi_species 299, too_short 272, species_not_in_44 31, duplicate_audio 13, no_a
 
 A *recording* = the first 5 characters of the Watkins filename (tape/session), e.g. `61025` in `6102500A.wav`.
 
+![Clips and recordings per species after cleaning](outputs/exploration/clips_recordings_per_species.png)
+
+Example spectrograms (one clip per species, `Dataset_exploration.ipynb`):
+
+![Example spectrograms](outputs/exploration/example_spectrograms.png)
+
 ## Splits and why there are two
 
 | Split | Species | Method | Sizes (train / val / test) | What it measures |
@@ -180,6 +188,8 @@ lowest val loss. Seed 42, mixed precision.
 With clean data and the same clip-level split EfficientNet does *better* than in 2025, so the cleaning removed noise
 rather than an advantage. But **most of that accuracy depends on having heard the recording before**: split by
 recording, accuracy falls to ≈0.61 (mean per-class F1 on the 34 shared species 0.95 → 0.44).
+
+![Per-species F1 of EfficientNet on seen vs unseen recordings](outputs/evaluation/f1_seen_vs_unseen.png)
 
 ### Tuning on the grouped split (DL course Labs 3 and 5; one change at a time, 3 seeds each)
 
@@ -229,7 +239,12 @@ C chosen on validation macro-F1 from {0.001 … 10}, test evaluated once.
 | 16 | 0.45 | 0.93 | 0.70 | 0.99 |
 | 32 | 0.51 | 0.94 | 0.78 | 0.99 |
 
+![Few-shot macro-F1 and ROC-AUC vs clips per species](outputs/perch/few_shot.png)
+
 **What the embedding captures** (`outputs/perch/pca_umap.png`, `outputs/evaluation/perch_hdbscan.csv`)
+
+![PCA and UMAP of Perch 2.0 embeddings, coloured by species and by original sample rate](outputs/perch/pca_umap.png)
+
 - Without labels, UMAP separates several species into clear islands (killer whale, fin whale, sperm whale,
   long-finned pilot whale, pantropical spotted dolphin).
 - The large-scale layout also follows the original **sample rate** (low-rate baleen/killer-whale recordings vs
@@ -250,6 +265,8 @@ See `Models/Evaluation.ipynb`, `outputs/evaluation/final_comparison.png`.
   get F1 ≈ 0. The two models fail on different species.
 - Everything on unseen recordings is far below the seen-recording numbers: generalization to new recording
   conditions, not species recognition per se, is the hard part.
+
+![Per-species F1 on unseen recordings: Perch 2.0 vs EfficientNet_05](outputs/evaluation/per_class_f1_perch_vs_effnet05.png)
 
 ## Open questions / next steps
 
