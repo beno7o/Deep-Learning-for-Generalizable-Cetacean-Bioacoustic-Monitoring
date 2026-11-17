@@ -32,8 +32,11 @@ clearly better**: +6 points accuracy, +0.06–0.08 macro-F1 over the best tuned 
 | Dataset exploration | done |
 | EfficientNet: 2025 recipe on both splits + tuning on the grouped split (02b–06) | done |
 | Perch 2.0 embeddings, linear probe, few-shot, PCA/UMAP, HDBSCAN | done |
+| Perch-Hoplite database + similarity search | done |
+| Hoplite active learning | not yet |
 | Next ideas: see "Open questions / next steps" | |
-| DCLDE killer whale dataset (cross-dataset generalization) | later |
+| DCLDE killer whale dataset: read paper, inspect a small sample | **next step** |
+| DCLDE cross-dataset generalization experiments | later |
 
 ## Folder structure (REPSOL layout)
 
@@ -53,6 +56,7 @@ onlab-cetacean/
 │   ├── EfficientNet_05.ipynb     # grouped, 03 + checkpoint selection on val macro-F1  ⭐ best EfficientNet
 │   ├── EfficientNet_06.ipynb     # grouped, 04 + checkpoint selection on val macro-F1
 │   ├── Perch2_01.ipynb           # Perch 2.0 linear probe, few-shot, PCA/UMAP, HDBSCAN (Perch kernel)
+│   ├── Hoplite_01.ipynb          # Perch-Hoplite database + similarity search (Perch kernel)
 │   └── Evaluation.ipynb          # ⭐ final comparison of all runs
 ├── Models_output/                # checkpoints (*_best_NN.pth, auto-numbered) + training histories
 ├── outputs/
@@ -73,7 +77,8 @@ onlab-cetacean/
     │   └── experiment.py         # run one configuration with seeds 42/43/44 → experiments.csv
     ├── Perch/
     │   ├── embed.py              # Perch 2.0 embeddings via Perch-Hoplite (resumable chunks)
-    │   └── probe.py              # linear probe + few-shot on the embeddings
+    │   ├── probe.py              # linear probe + few-shot on the embeddings
+    │   └── search.py             # Hoplite database + nearest-neighbour search evaluation
     └── preprocess/
         ├── prepare_watkins.py    # unzip download → raw/, build old/index.csv (2025 vs download)
         ├── clean.py              # → Annotations/audio_annotations.csv + excluded.csv
@@ -93,6 +98,7 @@ D:\UNI&WORK\Watkins\              # config.DATA_ROOT (override with env var WATK
 │   └── grouped_34\               # grouped split (34 species) + species_left_out.csv
 ├── Spectrograms\<category>\*.norm.pt   # one per clean clip, shared by both splits
 ├── Embeddings\perch_v2\embeddings.npz  # Perch 2.0: emb_first / emb_mean (14,098 × 1536)
+├── Hoplite\watkins_perch_v2\     # Hoplite database (SQLite + USearch index) of the same embeddings
 └── old\                          # 2025 metadata + splits, index.csv (reference only)
 ```
 
@@ -101,7 +107,7 @@ D:\UNI&WORK\Watkins\              # config.DATA_ROOT (override with env var WATK
 1. `Preprocess.ipynb`: cleaning → splits → spectrograms
 2. `Dataset_exploration.ipynb`
 3. `Models/EfficientNet_01 … 06.ipynb` (kernel *Python (onlab-cetacean)*)
-4. `Perch_embeddings.ipynb`, then `Models/Perch2_01.ipynb` (kernel *Python (onlab-perch, Perch 2.0)*)
+4. `Perch_embeddings.ipynb`, then `Models/Perch2_01.ipynb` and `Models/Hoplite_01.ipynb` (kernel *Python (onlab-perch, Perch 2.0)*)
 5. `Models/Evaluation.ipynb`
 
 Command-line equivalents: `python -m src.preprocess.clean`, `python -m src.preprocess.split`,
@@ -253,6 +259,27 @@ C chosen on validation macro-F1 from {0.001 … 10}, test evaluated once.
   (e.g. PCA-50: NMI species 0.79 vs recording 0.79; UMAP-10: 0.67 vs 0.76). The embedding encodes recording
   conditions as well as calls, which matters for the later unknown-sound clustering.
 
+### Perch-Hoplite similarity search (`Models/Hoplite_01.ipynb`, `src/Perch/search.py`)
+
+The embeddings were loaded into a **Hoplite database** (SQLite + USearch vector index, the format of Hoplite's
+agile-modeling notebooks; stored at `D:\UNI&WORK\Watkins\Hoplite\`): deployment = Watkins recording (tape),
+recording = clip, window = first 5 s, annotation = species. Every clip is used once as a query (cosine similarity,
+the query itself removed).
+
+| Nearest neighbours | same species | from the query's own recording | same species, **other recordings only** |
+| --- | --- | --- | --- |
+| k = 1, all queries | 0.94 | 0.79 | 0.59 |
+| k = 1, mean over the 34 species with ≥ 3 recordings | 0.91 | 0.79 | 0.48 |
+| k = 10, mean over the 34 species | 0.75 | 0.58 | 0.38 |
+
+The nearest clip is almost always the same species, **but mostly because it comes from the same recording**.
+Restricted to other recordings, precision@1 falls to about 0.5–0.6. Same message as the classifiers and HDBSCAN:
+the embedding strongly encodes the recording. For later unknown-sound search on long recordings, results should be
+checked across deployments. Not tried yet: Hoplite's active-learning loop (label search results → linear classifier
+→ search again).
+
+![Hoplite nearest-neighbour precision, any recording vs other recordings only](outputs/perch/hoplite_search.png)
+
 ## Comparison and interpretation
 
 See `Models/Evaluation.ipynb`, `outputs/evaluation/final_comparison.png`.
@@ -272,7 +299,9 @@ See `Models/Evaluation.ipynb`, `outputs/evaluation/final_comparison.png`.
 
 - Combine both: fine-tune Perch, or a small MLP / ensemble of Perch + EfficientNet (they fail on different species).
 - Recording-balanced sampling (a few long recordings dominate training), per-frequency background removal.
+- **Next:** read the DCLDE paper, inspect a small sample (sites, years, hydrophones, annotation format), propose a subset.
 - Cross-dataset test: train on Watkins, test on DCLDE killer whale (and later DCLDE sites against each other).
+- Hoplite active learning; similarity search restricted to other deployments.
 - Compare more embedding models available in Hoplite (BirdNET, SurfPerch, AVES), as in the Perch 2.0 paper.
 - Verify the 519 White-beaked / White-sided labels if the WHOI site comes back.
 

@@ -61,8 +61,16 @@ Short entries, newest at the bottom. This file feeds the supervisor updates; `RE
 - Per species mixed: Perch better on 18/34; the two fail on different species.
 - UMAP: several species form clean islands; layout also follows sample rate. HDBSCAN clusters agree with recordings about as much as with species.
 
+## 2026-11-17: Perch-Hoplite similarity search
+- Loaded the Perch 2.0 embeddings into a Hoplite database (SQLite + USearch, `D:\UNI&WORK\Watkins\Hoplite\`): deployment = tape, recording = clip, window = first 5 s, annotation = species. Build + 14,098 queries ≈ 1 min.
+- Gotcha: `db.search()` returns a `TopKSearchResults` heap, not sorted → sort by `sort_score` before ranking.
+- Nearest neighbour: same species 0.94, from the same recording 0.79; same species among other recordings only 0.59 (0.48 averaged over the 34 species with ≥ 3 recordings). → neighbours are mostly "same tape", same story as HDBSCAN.
+- Not done: Hoplite active-learning loop.
+- Repo published on GitHub (public, no data, no checkpoints).
+
 ## Next
-- Ideas: fine-tune Perch / MLP / ensemble with EfficientNet; recording-balanced sampling; DCLDE cross-dataset test; other Hoplite models (BirdNET, SurfPerch, AVES).
+- **DCLDE:** read the paper, inspect a small sample, propose a subset (next step after the update).
+- Ideas: fine-tune Perch / MLP / ensemble with EfficientNet; recording-balanced sampling; DCLDE cross-dataset test; other Hoplite models (BirdNET, SurfPerch, AVES); Hoplite active learning.
 - Send the update to Mohammed (overdue).
 
 ## Environment
