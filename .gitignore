@@ -26,3 +26,8 @@ Thumbs.db
 .idea/
 
 .venv-perch/
+
+# Model checkpoints (too large for git; kept locally in Models_output/)
+*.pth
+*.pt
+
