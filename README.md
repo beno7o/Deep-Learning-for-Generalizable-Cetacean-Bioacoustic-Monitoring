@@ -2,10 +2,14 @@
 
 Önálló labor project, BME MSc Artificial Intelligence. Supervisor: Dr. Mohammed Al-Radhi.
 
-The project investigates bioacoustic foundation models (Perch 2.0, later AVES) for classifying whale and dolphin
-vocalizations, and how well they generalize to recordings from different datasets, locations, hydrophones and
+The project investigates bioacoustic foundation models (Perch 2.0, later AVES) for classifying marine mammal
+(mainly whale and dolphin) vocalizations, and how well they generalize to recordings from different datasets, locations, hydrophones and
 recording conditions. So far: a clean **EfficientNet baseline** and **Perch 2.0 embeddings + linear probe** on the
 **Watkins Marine Mammal Sound Database**, compared on exactly the same splits.
+
+Watkins is a general marine mammal database, so the 44 species are not all cetaceans: 34 are whales, dolphins and
+porpoises (13,301 clips), and 10 are other marine mammals (8 seals, walrus and West Indian manatee; 797 clips, ~6 %).
+All 44 are kept for now so the results stay comparable to the 2025 setup; the DCLDE work will be cetaceans only.
 
 A dated log of everything done is in [`notes.md`](notes.md).
 
